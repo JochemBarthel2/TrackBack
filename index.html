@@ -1,0 +1,907 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TrackBack | Mid-fi prototype</title>
+<meta name="description" content="Clickable mid-fidelity prototype of TrackBack, an app that helps Vitalis caregivers alert a resident's network to bring them back safely.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:#01161E;color:#EEF3F4;overflow:hidden}
+.app{display:flex;height:100vh;height:100dvh}
+.stage{flex:1;display:flex;align-items:center;justify-content:center;min-width:0;position:relative}
+.phone{width:390px;height:844px;flex:none;border-radius:44px;overflow:hidden;background:#fff;box-shadow:0 0 0 10px #0b2a35,0 30px 80px rgba(0,0,0,.5);position:relative;transform-origin:center center}
+.screen{position:absolute;inset:0;overflow:hidden}
+.screen[hidden]{display:none}
+.phone a,.phone button{cursor:pointer}
+.toast{position:absolute;left:50%;bottom:110px;transform:translateX(-50%) translateY(20px);background:#01161E;color:#fff;padding:12px 18px;border-radius:12px;font-size:14px;font-weight:500;max-width:320px;text-align:center;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:10}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media (max-width:760px){.phone{border-radius:0;box-shadow:none}}
+#scr-Main{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#01161E}#scr-Main a{color:#01161E}#scr-Main a:hover{color:#124559}#scr-Main .btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:52px;border-radius:12px;font:inherit;font-size:16px;font-weight:600;text-decoration:none;box-sizing:border-box;border:0}#scr-Main .pri{background:#124559;color:#fff}#scr-Main .sec{background:#fff;color:#01161E;border:1.5px solid #124559}
+
+#scr-Role{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#01161E}#scr-Role a{color:#01161E}#scr-Role a:hover{color:#124559}#scr-Role .ib{width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:22px;color:#01161E;text-decoration:none}#scr-Role .choice{display:flex;gap:16px;align-items:flex-start;padding:20px;border:1.5px solid #B9CCD2;border-radius:16px;text-decoration:none;color:#01161E}#scr-Role .choice:hover{border-color:#124559}#scr-Role .ico{width:52px;height:52px;flex:none;border-radius:14px;background:#E3ECEE;display:flex;align-items:center;justify-content:center;color:#124559}
+
+#scr-Login{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#01161E}#scr-Login a{color:#01161E}#scr-Login a:hover{color:#124559}#scr-Login .ib{width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:22px;color:#01161E;text-decoration:none}#scr-Login .fld{display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:500;color:#1F3A45}#scr-Login .fld input{font:inherit;font-size:16px;font-weight:400;min-height:52px;padding:0 14px;border:1.5px solid #B9CCD2;border-radius:12px;box-sizing:border-box;color:#01161E;background:#fff}#scr-Login .btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:52px;border-radius:12px;font:inherit;font-size:16px;font-weight:600;text-decoration:none;box-sizing:border-box;border:0}#scr-Login .pri{background:#124559;color:#fff}
+
+#scr-CgLocations{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#01161E}#scr-CgLocations a{color:#01161E}#scr-CgLocations a:hover{color:#124559}#scr-CgLocations .row{display:flex;align-items:center;gap:12px;min-height:68px;padding-right:14px;border:1px solid #C5D5DA;border-radius:12px;overflow:hidden;text-decoration:none;color:#01161E;background:#fff}#scr-CgLocations .av{width:58px;align-self:stretch;flex:none;display:flex;align-items:center;justify-content:center;background:#E3ECEE;color:#4E6D78}#scr-CgLocations .av.ok{background:#C1D37F;color:#124559}#scr-CgLocations .av.no{background:#F2DCE1;color:#A5243D}#scr-CgLocations .nm{font-weight:600;font-size:17px}#scr-CgLocations .rel{font-size:13px;color:#3E5C66}#scr-CgLocations .tag{font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;background:#E3ECEE;color:#1F3A45;white-space:nowrap}#scr-CgLocations .tag.ok{background:#C1D37F;color:#01161E}#scr-CgLocations .tag.no{background:#F2DCE1;color:#A5243D}#scr-CgLocations .nav{display:flex;justify-content:space-around;border-top:1px solid #D5E2E5;padding:6px 0 20px}#scr-CgLocations .nav a{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:80px;min-height:48px;justify-content:center;font-size:12px;color:#4E6D78;text-decoration:none}#scr-CgLocations .nav a.on{color:#124559;font-weight:600;box-shadow:inset 0 -3px 0 #124559}
+
+#scr-CgAlert{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#01161E}#scr-CgAlert a{color:#01161E}#scr-CgAlert a:hover{color:#124559}#scr-CgAlert .ib{width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:22px;color:#01161E;text-decoration:none}#scr-CgAlert .btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:52px;border-radius:12px;font:inherit;font-size:16px;font-weight:600;text-decoration:none;box-sizing:border-box;border:0}#scr-CgAlert .pri{background:#124559;color:#fff}#scr-CgAlert .sec{background:#fff;color:#01161E;border:1.5px solid #124559}#scr-CgAlert .map{position:relative;border-radius:14px;background-color:#DDE7EA;background-image:repeating-linear-gradient(35deg,transparent 0 46px,#C5D5DA 46px 52px),repeating-linear-gradient(-55deg,transparent 0 80px,#CEDCE0 80px 88px);overflow:hidden}#scr-CgAlert .pin{position:absolute;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;font-weight:600}#scr-CgAlert .pin span{background:#fff;padding:2px 7px;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.2)}#scr-CgAlert .dot{width:20px;height:20px;border-radius:50%;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35)}#scr-CgAlert .stat{flex:1;display:flex;flex-direction:column;gap:2px;padding:12px 14px;background:#EEF3F4;border-radius:12px}#scr-CgAlert .stat b{font-size:18px}#scr-CgAlert .stat span{font-size:13px;color:#3E5C66}
+
+#scr-CgNetwork{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#01161E}#scr-CgNetwork a{color:#01161E}#scr-CgNetwork a:hover{color:#124559}#scr-CgNetwork .ib{width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:22px;color:#01161E;text-decoration:none}#scr-CgNetwork .btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:52px;border-radius:12px;font:inherit;font-size:16px;font-weight:600;text-decoration:none;box-sizing:border-box;border:0}#scr-CgNetwork .pri{background:#124559;color:#fff}#scr-CgNetwork .row{display:flex;align-items:center;gap:12px;min-height:68px;padding-right:14px;border:1px solid #C5D5DA;border-radius:12px;overflow:hidden;color:#01161E;background:#fff}#scr-CgNetwork .av{width:58px;align-self:stretch;flex:none;display:flex;align-items:center;justify-content:center;background:#E3ECEE;color:#4E6D78}#scr-CgNetwork .av.ok{background:#C1D37F;color:#124559}#scr-CgNetwork .av.no{background:#F2DCE1;color:#A5243D}#scr-CgNetwork .nm{font-weight:600;font-size:17px}#scr-CgNetwork .rel{font-size:13px;color:#3E5C66}#scr-CgNetwork .tag{font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;white-space:nowrap}#scr-CgNetwork .tag.ok{background:#C1D37F;color:#01161E}#scr-CgNetwork .tag.no{background:#F2DCE1;color:#A5243D}#scr-CgNetwork .step{display:flex;gap:12px;align-items:flex-start;font-size:14px;line-height:1.35}#scr-CgNetwork .num{width:24px;height:24px;flex:none;border-radius:50%;background:#124559;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}#scr-CgNetwork .step em{font-style:normal;color:#3E5C66;white-space:nowrap}
+
+#scr-CgSearching{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#01161E}#scr-CgSearching a{color:#01161E}#scr-CgSearching a:hover{color:#124559}#scr-CgSearching .btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:52px;border-radius:12px;font:inherit;font-size:16px;font-weight:600;text-decoration:none;box-sizing:border-box;border:0}#scr-CgSearching .sec{background:#fff;color:#01161E;border:1.5px solid #124559}#scr-CgSearching .ter{background:#E3ECEE;color:#01161E}#scr-CgSearching .seg{flex:1;height:6px;border-radius:3px;background:#C5D5DA}#scr-CgSearching .resp{display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;border:1px solid #C5D5DA;border-radius:12px}#scr-CgSearching .resp .nm{flex:1;display:flex;flex-direction:column;font-size:16px;font-weight:600}#scr-CgSearching .resp .nm span{font-size:13px;font-weight:400;color:#3E5C66}#scr-CgSearching .resp .st{font-size:13px;font-weight:600;white-space:nowrap}#scr-CgSearching .resp.ok{background:#C1D37F;border-color:#C1D37F;color:#01161E}#scr-CgSearching .resp.ok .nm span{color:#01161E}#scr-CgSearching .resp.wait{background:#CD8B76;border-color:#CD8B76;color:#01161E}#scr-CgSearching .resp.wait .nm span{color:#01161E}#scr-CgSearching .resp.no{background:#A5243D;border-color:#A5243D;color:#fff}#scr-CgSearching .resp.no .nm span{color:#fff}
+
+#scr-CgOnRoute{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#01161E}#scr-CgOnRoute a{color:#01161E}#scr-CgOnRoute a:hover{color:#124559}#scr-CgOnRoute .btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:52px;border-radius:12px;font:inherit;font-size:16px;font-weight:600;text-decoration:none;box-sizing:border-box;border:0}#scr-CgOnRoute .pri{background:#124559;color:#fff}#scr-CgOnRoute .sec{background:#fff;color:#01161E;border:1.5px solid #124559}#scr-CgOnRoute .ter{background:#E3ECEE;color:#01161E}#scr-CgOnRoute .map{position:relative;border-radius:14px;background-color:#DDE7EA;background-image:repeating-linear-gradient(35deg,transparent 0 46px,#C5D5DA 46px 52px),repeating-linear-gradient(-55deg,transparent 0 80px,#CEDCE0 80px 88px);overflow:hidden}#scr-CgOnRoute .pin{position:absolute;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;font-weight:600}#scr-CgOnRoute .pin span{background:#fff;padding:2px 7px;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.2)}#scr-CgOnRoute .dot{width:20px;height:20px;border-radius:50%;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35)}#scr-CgOnRoute .seg{flex:1;height:6px;border-radius:3px;background:#C5D5DA}
+
+#scr-CgNoOne{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#01161E}#scr-CgNoOne a{color:#01161E}#scr-CgNoOne a:hover{color:#124559}#scr-CgNoOne .btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:52px;border-radius:12px;font:inherit;font-size:16px;font-weight:600;text-decoration:none;box-sizing:border-box;border:0}#scr-CgNoOne .pri{background:#124559;color:#fff}#scr-CgNoOne .sec{background:#fff;color:#01161E;border:1.5px solid #124559}#scr-CgNoOne .ter{background:#E3ECEE;color:#01161E}#scr-CgNoOne .seg{flex:1;height:6px;border-radius:3px;background:#C5D5DA}#scr-CgNoOne .resp{display:flex;align-items:center;gap:12px;min-height:52px;padding:0 14px;border-radius:12px;font-size:16px;font-weight:600;background:#A5243D;color:#fff}#scr-CgNoOne .resp .st{font-size:13px;font-weight:600;white-space:nowrap}
+
+#scr-CgReturned{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#01161E}#scr-CgReturned a{color:#01161E}#scr-CgReturned a:hover{color:#124559}#scr-CgReturned .btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:52px;border-radius:12px;font:inherit;font-size:16px;font-weight:600;text-decoration:none;box-sizing:border-box;border:0}#scr-CgReturned .pri{background:#124559;color:#fff}#scr-CgReturned .ev{display:flex;gap:14px;font-size:15px;line-height:1.35}#scr-CgReturned .ev time{width:44px;flex:none;font-weight:600;font-variant-numeric:tabular-nums}#scr-CgReturned .ev span{flex:1;padding-bottom:14px;border-left:2px solid #C5D5DA;padding-left:14px}#scr-CgReturned .fld{display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:600;color:#1F3A45}#scr-CgReturned .fld textarea{font:inherit;font-size:15px;font-weight:400;min-height:84px;padding:12px 14px;border:1.5px solid #B9CCD2;border-radius:12px;box-sizing:border-box;resize:none;color:#01161E}
+
+#scr-CgResidents{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#01161E}#scr-CgResidents a{color:#01161E}#scr-CgResidents a:hover{color:#124559}#scr-CgResidents .row{display:flex;align-items:center;gap:12px;min-height:68px;padding-right:14px;border:1px solid #C5D5DA;border-radius:12px;overflow:hidden;text-decoration:none;color:#01161E;background:#fff}#scr-CgResidents .av{width:58px;align-self:stretch;flex:none;display:flex;align-items:center;justify-content:center;background:#E3ECEE;color:#4E6D78}#scr-CgResidents .nm{font-weight:600;font-size:17px}#scr-CgResidents .rel{font-size:13px;color:#3E5C66}#scr-CgResidents .add{display:flex;align-items:center;justify-content:center;gap:8px;min-height:52px;border-radius:12px;border:1.5px dashed #598392;font-size:16px;font-weight:600;text-decoration:none;color:#01161E}#scr-CgResidents .nav{display:flex;justify-content:space-around;border-top:1px solid #D5E2E5;padding:6px 0 20px}#scr-CgResidents .nav a{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:80px;min-height:48px;justify-content:center;font-size:12px;color:#4E6D78;text-decoration:none}#scr-CgResidents .nav a.on{color:#124559;font-weight:600;box-shadow:inset 0 -3px 0 #124559}
+
+#scr-CgProfile{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#01161E}#scr-CgProfile a{color:#01161E}#scr-CgProfile a:hover{color:#124559}#scr-CgProfile .ib{width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:22px;color:#01161E;text-decoration:none}#scr-CgProfile .row{display:flex;align-items:center;gap:12px;min-height:60px;padding-right:6px;border:1px solid #C5D5DA;border-radius:12px;overflow:hidden;text-decoration:none;color:#01161E;background:#fff}#scr-CgProfile .av{width:52px;align-self:stretch;flex:none;display:flex;align-items:center;justify-content:center;background:#E3ECEE;color:#4E6D78}#scr-CgProfile .nm{font-weight:600;font-size:16px}#scr-CgProfile .rel{font-size:13px;color:#3E5C66}#scr-CgProfile .lbl{font-size:13px;font-weight:600;color:#3E5C66;margin:0}#scr-CgProfile .add{display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;border-radius:12px;border:1.5px dashed #598392;font-size:15px;font-weight:600;text-decoration:none;color:#01161E}#scr-CgProfile .fld textarea{font:inherit;font-size:15px;width:100%;min-height:76px;padding:12px 14px;border:1.5px solid #B9CCD2;border-radius:12px;box-sizing:border-box;resize:none;color:#01161E}#scr-CgProfile .nav{display:flex;justify-content:space-around;border-top:1px solid #D5E2E5;padding:6px 0 20px}#scr-CgProfile .nav a{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:80px;min-height:48px;justify-content:center;font-size:12px;color:#4E6D78;text-decoration:none}#scr-CgProfile .nav a.on{color:#124559;font-weight:600;box-shadow:inset 0 -3px 0 #124559}
+
+#scr-CgEscalation{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#01161E}#scr-CgEscalation a{color:#01161E}#scr-CgEscalation a:hover{color:#124559}#scr-CgEscalation .ib{width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:22px;color:#01161E;text-decoration:none}#scr-CgEscalation .btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:52px;border-radius:12px;font:inherit;font-size:16px;font-weight:600;text-decoration:none;box-sizing:border-box;border:0}#scr-CgEscalation .pri{background:#124559;color:#fff}#scr-CgEscalation .lbl{font-size:13px;font-weight:600;color:#3E5C66;margin:0}#scr-CgEscalation .segc{display:flex;padding:4px;background:#E3ECEE;border-radius:12px;gap:4px}#scr-CgEscalation .segc button{flex:1;min-height:44px;border:0;border-radius:9px;background:none;font:inherit;font-size:15px;font-weight:500;color:#1F3A45}#scr-CgEscalation .segc button.on{background:#fff;font-weight:600;color:#01161E;box-shadow:0 1px 3px rgba(0,0,0,.15)}#scr-CgEscalation .step{display:flex;align-items:center;gap:10px;min-height:68px;padding:8px 8px 8px 12px;border:1px solid #C5D5DA;border-radius:12px;box-sizing:border-box}#scr-CgEscalation .num{width:26px;height:26px;flex:none;border-radius:50%;background:#124559;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center}#scr-CgEscalation .txt{flex:1;display:flex;flex-direction:column;font-size:15px;font-weight:600;line-height:1.25;min-width:0}#scr-CgEscalation .txt span{font-size:12px;font-weight:400;color:#3E5C66}#scr-CgEscalation .stp{display:flex;align-items:center;flex:none}#scr-CgEscalation .stp button{width:40px;height:44px;border:1.5px solid #B9CCD2;background:#fff;font:inherit;font-size:20px;line-height:1;color:#01161E;display:flex;align-items:center;justify-content:center;padding:0}#scr-CgEscalation .stp button:first-child{border-radius:10px 0 0 10px}#scr-CgEscalation .stp button:last-child{border-radius:0 10px 10px 0}#scr-CgEscalation .stp output{min-width:58px;height:44px;box-sizing:border-box;border-top:1.5px solid #B9CCD2;border-bottom:1.5px solid #B9CCD2;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+
+#scr-NwAlert{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#01161E}#scr-NwAlert a{color:#01161E}#scr-NwAlert a:hover{color:#124559}#scr-NwAlert .btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:56px;border-radius:12px;font:inherit;font-size:17px;font-weight:600;text-decoration:none;box-sizing:border-box;border:0}#scr-NwAlert .pri{background:#124559;color:#fff}#scr-NwAlert .sec{background:#fff;color:#01161E;border:1.5px solid #124559}#scr-NwAlert .map{position:relative;border-radius:14px;background-color:#DDE7EA;background-image:repeating-linear-gradient(35deg,transparent 0 46px,#C5D5DA 46px 52px),repeating-linear-gradient(-55deg,transparent 0 80px,#CEDCE0 80px 88px);overflow:hidden}#scr-NwAlert .pin{position:absolute;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;font-weight:600}#scr-NwAlert .pin span{background:#fff;padding:2px 7px;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.2)}#scr-NwAlert .dot{width:20px;height:20px;border-radius:50%;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35)}#scr-NwAlert .stat{flex:1;display:flex;flex-direction:column;gap:2px;padding:12px 14px;background:#EEF3F4;border-radius:12px}#scr-NwAlert .stat b{font-size:18px}#scr-NwAlert .stat span{font-size:13px;color:#3E5C66}
+
+#scr-NwOnRoute{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#01161E}#scr-NwOnRoute a{color:#01161E}#scr-NwOnRoute a:hover{color:#124559}#scr-NwOnRoute .btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:56px;border-radius:12px;font:inherit;font-size:17px;font-weight:600;text-decoration:none;box-sizing:border-box;border:0}#scr-NwOnRoute .pri{background:#124559;color:#fff}#scr-NwOnRoute .sec{background:#fff;color:#01161E;border:1.5px solid #124559}#scr-NwOnRoute .ter{background:#E3ECEE;color:#01161E}#scr-NwOnRoute .map{position:relative;border-radius:14px;background-color:#DDE7EA;background-image:repeating-linear-gradient(35deg,transparent 0 46px,#C5D5DA 46px 52px),repeating-linear-gradient(-55deg,transparent 0 80px,#CEDCE0 80px 88px);overflow:hidden}#scr-NwOnRoute .pin{position:absolute;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;font-weight:600}#scr-NwOnRoute .pin span{background:#fff;padding:2px 7px;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.2)}#scr-NwOnRoute .dot{width:20px;height:20px;border-radius:50%;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35)}#scr-NwOnRoute .tip{display:flex;gap:10px;font-size:14px;line-height:1.4}#scr-NwOnRoute .tip b{width:20px;flex:none;font-weight:700}
+
+#scr-NwWalking{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#01161E}#scr-NwWalking a{color:#01161E}#scr-NwWalking a:hover{color:#124559}#scr-NwWalking .btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:56px;border-radius:12px;font:inherit;font-size:17px;font-weight:600;text-decoration:none;box-sizing:border-box;border:0}#scr-NwWalking .pri{background:#124559;color:#fff}#scr-NwWalking .sec{background:#fff;color:#01161E;border:1.5px solid #124559}#scr-NwWalking .ter{background:#E3ECEE;color:#01161E}#scr-NwWalking .map{position:relative;border-radius:14px;background-color:#DDE7EA;background-image:repeating-linear-gradient(35deg,transparent 0 46px,#C5D5DA 46px 52px),repeating-linear-gradient(-55deg,transparent 0 80px,#CEDCE0 80px 88px);overflow:hidden}#scr-NwWalking .pin{position:absolute;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;font-weight:600}#scr-NwWalking .pin span{background:#fff;padding:2px 7px;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.2)}#scr-NwWalking .dot{width:20px;height:20px;border-radius:50%;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35)}#scr-NwWalking .stat{flex:1;display:flex;flex-direction:column;gap:2px;padding:12px 14px;background:#EEF3F4;border-radius:12px}#scr-NwWalking .stat b{font-size:18px}#scr-NwWalking .stat span{font-size:13px;color:#3E5C66}
+
+#scr-NwThanks{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#01161E}#scr-NwThanks a{color:#01161E}#scr-NwThanks a:hover{color:#124559}#scr-NwThanks .btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:56px;border-radius:12px;font:inherit;font-size:17px;font-weight:600;text-decoration:none;box-sizing:border-box;border:0}#scr-NwThanks .pri{background:#124559;color:#fff}
+
+#scr-NwCantHelp{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#01161E}#scr-NwCantHelp a{color:#01161E}#scr-NwCantHelp a:hover{color:#124559}#scr-NwCantHelp .btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:56px;border-radius:12px;font:inherit;font-size:17px;font-weight:600;text-decoration:none;box-sizing:border-box;border:0}#scr-NwCantHelp .pri{background:#124559;color:#fff}#scr-NwCantHelp .sec{background:#fff;color:#01161E;border:1.5px solid #124559}
+
+#scr-NwTaken{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#01161E}#scr-NwTaken a{color:#01161E}#scr-NwTaken a:hover{color:#124559}#scr-NwTaken .btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:56px;border-radius:12px;font:inherit;font-size:17px;font-weight:600;text-decoration:none;box-sizing:border-box;border:0}#scr-NwTaken .pri{background:#124559;color:#fff}
+
+#scr-NwHomeDone{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#01161E}#scr-NwHomeDone a{color:#01161E}#scr-NwHomeDone a:hover{color:#124559}#scr-NwHomeDone .lbl{font-size:13px;font-weight:600;color:#3E5C66;margin:0}#scr-NwHomeDone .row{display:flex;align-items:center;gap:12px;min-height:64px;padding:0 14px;border:1px solid #C5D5DA;border-radius:12px;text-decoration:none;color:#01161E;background:#fff}#scr-NwHomeDone .ico{width:40px;height:40px;flex:none;border-radius:10px;background:#E3ECEE;display:flex;align-items:center;justify-content:center;color:#124559}#scr-NwHomeDone .nm{font-weight:600;font-size:16px}#scr-NwHomeDone .rel{font-size:13px;color:#3E5C66}#scr-NwHomeDone .sw{width:52px;height:32px;flex:none;border-radius:16px;background:#124559;position:relative;border:0;padding:0}#scr-NwHomeDone .sw span{position:absolute;right:3px;top:3px;width:26px;height:26px;border-radius:50%;background:#fff}#scr-NwHomeDone .nav{display:flex;justify-content:space-around;border-top:1px solid #D5E2E5;padding:6px 0 20px}#scr-NwHomeDone .nav a{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:72px;min-height:48px;justify-content:center;font-size:12px;color:#4E6D78;text-decoration:none}#scr-NwHomeDone .nav a.on{color:#124559;font-weight:600;box-shadow:inset 0 -3px 0 #124559}
+
+#scr-NwHome{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#01161E}#scr-NwHome a{color:#01161E}#scr-NwHome a:hover{color:#124559}#scr-NwHome .lbl{font-size:13px;font-weight:600;color:#3E5C66;margin:0}#scr-NwHome .row{display:flex;align-items:center;gap:12px;min-height:64px;padding:0 14px;border:1px solid #C5D5DA;border-radius:12px;text-decoration:none;color:#01161E;background:#fff}#scr-NwHome .ico{width:40px;height:40px;flex:none;border-radius:10px;background:#E3ECEE;display:flex;align-items:center;justify-content:center;color:#124559}#scr-NwHome .nm{font-weight:600;font-size:16px}#scr-NwHome .rel{font-size:13px;color:#3E5C66}#scr-NwHome .sw{width:52px;height:32px;flex:none;border-radius:16px;background:#124559;position:relative;border:0;padding:0}#scr-NwHome .sw span{position:absolute;right:3px;top:3px;width:26px;height:26px;border-radius:50%;background:#fff}#scr-NwHome .nav{display:flex;justify-content:space-around;border-top:1px solid #D5E2E5;padding:6px 0 20px}#scr-NwHome .nav a{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:72px;min-height:48px;justify-content:center;font-size:12px;color:#4E6D78;text-decoration:none}#scr-NwHome .nav a.on{color:#124559;font-weight:600;box-shadow:inset 0 -3px 0 #124559}
+
+#scr-NwAvailability{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#01161E}#scr-NwAvailability a{color:#01161E}#scr-NwAvailability a:hover{color:#124559}#scr-NwAvailability .btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:52px;border-radius:12px;font:inherit;font-size:16px;font-weight:600;text-decoration:none;box-sizing:border-box;border:0}#scr-NwAvailability .pri{background:#124559;color:#fff}#scr-NwAvailability .ib{width:44px;height:44px;border:0;background:none;display:flex;align-items:center;justify-content:center;border-radius:22px;color:#01161E;padding:0}#scr-NwAvailability .day{display:flex;align-items:center;gap:8px;min-height:50px;padding:0 2px 0 12px;border:1px solid #C5D5DA;border-radius:10px;box-sizing:border-box}#scr-NwAvailability .day b{width:58px;flex:none;font-size:14px}#scr-NwAvailability .day span{flex:1;font-size:14px;font-variant-numeric:tabular-nums;white-space:nowrap}#scr-NwAvailability .tag{font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;white-space:nowrap}#scr-NwAvailability .tag.ok{background:#C1D37F;color:#01161E}#scr-NwAvailability .tag.no{background:#F2DCE1;color:#A5243D}#scr-NwAvailability .tag.nf{background:#CD8B76;color:#01161E}#scr-NwAvailability .ed{width:44px;height:44px;border:0;background:none;color:#3E5C66;display:flex;align-items:center;justify-content:center;padding:0}#scr-NwAvailability .sw{width:52px;height:32px;flex:none;border-radius:16px;background:#124559;position:relative;border:0;padding:0}#scr-NwAvailability .sw span{position:absolute;right:3px;top:3px;width:26px;height:26px;border-radius:50%;background:#fff}#scr-NwAvailability .nav{display:flex;justify-content:space-around;border-top:1px solid #D5E2E5;padding:6px 0 20px}#scr-NwAvailability .nav a{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:72px;min-height:48px;justify-content:center;font-size:12px;color:#4E6D78;text-decoration:none}#scr-NwAvailability .nav a.on{color:#124559;font-weight:600;box-shadow:inset 0 -3px 0 #124559}
+
+#scr-NwProfile{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#01161E}#scr-NwProfile a{color:#01161E}#scr-NwProfile a:hover{color:#124559}#scr-NwProfile .btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:52px;border-radius:12px;font:inherit;font-size:16px;font-weight:600;text-decoration:none;box-sizing:border-box;border:0}#scr-NwProfile .pri{background:#124559;color:#fff}#scr-NwProfile .fld{display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:500;color:#1F3A45}#scr-NwProfile .fld input,#scr-NwProfile .fld textarea{font:inherit;font-size:16px;font-weight:400;min-height:48px;padding:0 14px;border:1.5px solid #B9CCD2;border-radius:12px;box-sizing:border-box;color:#01161E;background:#fff}#scr-NwProfile .fld textarea{padding:10px 14px;min-height:72px;resize:none;font-size:15px}#scr-NwProfile .segc{display:flex;padding:4px;background:#E3ECEE;border-radius:12px;gap:4px}#scr-NwProfile .segc button{flex:1;min-height:44px;border:0;border-radius:9px;background:none;font:inherit;font-size:15px;font-weight:500;color:#1F3A45}#scr-NwProfile .segc button.on{background:#fff;font-weight:600;color:#01161E;box-shadow:0 1px 3px rgba(0,0,0,.15)}#scr-NwProfile .nav{display:flex;justify-content:space-around;border-top:1px solid #D5E2E5;padding:6px 0 20px}#scr-NwProfile .nav a{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:72px;min-height:48px;justify-content:center;font-size:12px;color:#4E6D78;text-decoration:none}#scr-NwProfile .nav a.on{color:#124559;font-weight:600;box-shadow:inset 0 -3px 0 #124559}
+
+#scr-NwInfo{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#01161E}#scr-NwInfo a{color:#01161E}#scr-NwInfo a:hover{color:#124559}#scr-NwInfo .lbl{font-size:13px;font-weight:600;color:#3E5C66;margin:0}#scr-NwInfo .box{display:flex;flex-direction:column;gap:10px;padding:14px 16px;border:1px solid #C5D5DA;border-radius:12px}#scr-NwInfo .kv{display:flex;flex-direction:column;gap:2px;font-size:15px;line-height:1.35}#scr-NwInfo .kv span{font-size:13px;color:#3E5C66}#scr-NwInfo .row{display:flex;align-items:center;gap:12px;min-height:60px;padding:0 6px 0 14px;border:1px solid #C5D5DA;border-radius:12px;text-decoration:none;color:#01161E;background:#fff}#scr-NwInfo .nm{font-weight:600;font-size:16px}#scr-NwInfo .rel{font-size:13px;color:#3E5C66}#scr-NwInfo .call{width:44px;height:44px;flex:none;border-radius:22px;background:#E3ECEE;display:flex;align-items:center;justify-content:center;color:#01161E}#scr-NwInfo .nav{display:flex;justify-content:space-around;border-top:1px solid #D5E2E5;padding:6px 0 20px}#scr-NwInfo .nav a{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:72px;min-height:48px;justify-content:center;font-size:12px;color:#4E6D78;text-decoration:none}#scr-NwInfo .nav a.on{color:#124559;font-weight:600;box-shadow:inset 0 -3px 0 #124559}
+
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <main class="stage" id="stage">
+    <div class="phone" id="phone">
+<section class="screen" id="scr-Main" data-name="Main" aria-label="Start" hidden>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #ffffff; display: flex; flex-direction: column; padding: 48px 24px 40px; font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #01161E">
+  <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; text-align: center">
+    <div style="width: 132px; height: 132px; border-radius: 36px; background: #E3ECEE; display: flex; align-items: center; justify-content: center; color: #124559">
+      <svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="6" r="2.5"></circle><circle cx="17" cy="6" r="2.5"></circle><path d="M3 20v-4a4 4 0 0 1 4-4"></path><path d="M21 20v-4a4 4 0 0 0-4-4"></path><path d="M9 14h6"></path><path d="M13 12l2 2-2 2"></path><path d="M11 12l-2 2 2 2"></path></svg>
+    </div>
+    <h1 style="margin: 0; font-size: 30px; font-weight: 700">TrackBack</h1>
+    <p style="margin: 0; font-size: 16px; color: #3E5C66; max-width: 280px; line-height: 1.45">Bring residents of Vitalis safely back, together with their network.</p>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 12px">
+    <a class="btn pri" href="#Role">Create account</a>
+    <a class="btn sec" href="#Login">Log in</a>
+  </div>
+</div>
+</section>
+<section class="screen" id="scr-Role" data-name="Role" aria-label="Choose role" hidden>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #ffffff; display: flex; flex-direction: column; padding: 20px 24px 40px; gap: 24px">
+  <a class="ib" href="#Main" aria-label="Back"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></a>
+  <div style="display: flex; flex-direction: column; gap: 8px">
+    <h1 style="margin: 0; font-size: 26px; font-weight: 600">How will you use the app?</h1>
+    <p style="margin: 0; font-size: 15px; color: #3E5C66; line-height: 1.45">This decides which screens you see.</p>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 14px">
+    <a class="choice" href="#CgLocations">
+      <span class="ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"></path><circle cx="12" cy="9.5" r="2.5"></circle></svg></span>
+      <span style="display: flex; flex-direction: column; gap: 4px">
+        <span style="font-size: 18px; font-weight: 600">I'm a caregiver at Vitalis</span>
+        <span style="font-size: 14px; color: #3E5C66; line-height: 1.4">See where residents are and alert their network when someone needs to be picked up.</span>
+      </span>
+    </a>
+    <a class="choice" href="#NwHome">
+      <span class="ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20a6.5 6.5 0 0 1 13 0"></path><circle cx="17.5" cy="9" r="2.5"></circle><path d="M16 14.2a5 5 0 0 1 5.5 4.8"></path></svg></span>
+      <span style="display: flex; flex-direction: column; gap: 4px">
+        <span style="font-size: 18px; font-weight: 600">I'm part of a resident's network</span>
+        <span style="font-size: 14px; color: #3E5C66; line-height: 1.4">Family, neighbour, friend or volunteer. Get a notification when a resident needs help getting back.</span>
+      </span>
+    </a>
+  </div>
+  <div style="margin-top: auto; padding: 14px 16px; background: #EEF3F4; border-radius: 12px; font-size: 14px; color: #2C4A55; line-height: 1.45">
+    <strong>Using the shared ward tablet?</strong> Choose caregiver and log in with your own account, so the team can see who started a search.
+  </div>
+</div>
+</section>
+<section class="screen" id="scr-Login" data-name="Login" aria-label="Log in" hidden>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #ffffff; display: flex; flex-direction: column; padding: 20px 24px 40px; gap: 24px">
+  <a class="ib" href="#Main" aria-label="Back"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></a>
+  <h1 style="margin: 0; font-size: 26px; font-weight: 600">Welcome back</h1>
+  <div style="display: flex; flex-direction: column; gap: 16px">
+    <label class="fld">Email<input type="email" placeholder="name@example.com"></label>
+    <label class="fld">Password<input type="password" placeholder="Enter password"></label>
+    <a href="#" style="font-size: 14px; color: #1F3A45; align-self: flex-end">Forgot password?</a>
+  </div>
+  <a class="btn pri" href="#CgLocations">Log in</a>
+  <div style="margin-top: auto; display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; background: #EEF3F4; border-radius: 12px">
+    <span style="font-size: 14px; font-weight: 600">Shared ward tablet</span>
+    <span style="font-size: 14px; color: #2C4A55; line-height: 1.45">The tablet logs you out automatically at the end of your shift. [SHIFT TIMES]</span>
+  </div>
+</div>
+</section>
+<section class="screen" id="scr-CgLocations" data-name="CgLocations" aria-label="C1 Resident locations" hidden>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #ffffff; display: flex; flex-direction: column">
+  <div style="flex: 1; display: flex; flex-direction: column; gap: 18px; padding: 32px 20px 20px">
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <h1 style="margin: 0; font-size: 26px; font-weight: 600">Residents</h1>
+      <p style="margin: 0; font-size: 14px; color: #3E5C66">Ward 2 · 3 residents with a tracker</p>
+    </div>
+    <a href="#CgAlert" style="display: flex; gap: 12px; align-items: center; padding: 14px 16px; border-radius: 12px; background: #F2DCE1; color: #A5243D; text-decoration: none">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"></path><path d="M10 21h4"></path></svg>
+      <span style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+        <span style="font-weight: 600; font-size: 16px">Resident B left the Vitalis zone</span>
+        <span style="font-size: 13px">8 min ago · tap to see location</span>
+      </span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+    </a>
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <a class="row" href="#">
+        <span class="av ok"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0z"></path></svg></span>
+        <span style="flex: 1; display: flex; flex-direction: column"><span class="nm">Resident A</span><span class="rel">Inside · living room</span></span>
+        <span class="tag ok">Inside</span>
+      </a>
+      <a class="row" href="#CgAlert">
+        <span class="av no"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0z"></path></svg></span>
+        <span style="flex: 1; display: flex; flex-direction: column"><span class="nm">Resident B</span><span class="rel">1.2 km away · about 20 min walk</span></span>
+        <span class="tag no">Outside</span>
+      </a>
+      <a class="row" href="#">
+        <span class="av ok"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0z"></path></svg></span>
+        <span style="flex: 1; display: flex; flex-direction: column"><span class="nm">Resident C</span><span class="rel">Inside · garden</span></span>
+        <span class="tag ok">Inside</span>
+      </a>
+    </div>
+    <p style="margin: 0; font-size: 13px; color: #3E5C66">Locations from the Otiom trackers · updated 1 min ago</p>
+  </div>
+  <nav class="nav" aria-label="Main">
+    <a class="on" href="#CgLocations"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"></path><circle cx="12" cy="9.5" r="2.5"></circle></svg>Location</a>
+    <a href="#CgResidents"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20a6.5 6.5 0 0 1 13 0"></path><circle cx="17.5" cy="9" r="2.5"></circle><path d="M16 14.2a5 5 0 0 1 5.5 4.8"></path></svg>Residents</a>
+  </nav>
+</div>
+</section>
+<section class="screen" id="scr-CgAlert" data-name="CgAlert" aria-label="C2 Resident outside zone" hidden>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #ffffff; display: flex; flex-direction: column; padding: 20px 20px 32px; gap: 16px">
+  <div style="display: flex; align-items: center; gap: 4px">
+    <a class="ib" href="#CgLocations" aria-label="Back"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></a>
+    <span style="font-size: 12px; font-weight: 600; padding: 4px 9px; border-radius: 999px; background: #F2DCE1; color: #A5243D">Outside zone · 8 min</span>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 4px">
+    <h1 style="margin: 0; font-size: 26px; font-weight: 600">Resident B</h1>
+    <p style="margin: 0; font-size: 14px; color: #3E5C66">Left the Vitalis zone at 14:32</p>
+  </div>
+  <div class="map" style="height: 300px">
+    <div style="position: absolute; left: 40px; top: 190px; width: 230px; height: 0; border-top: 3px dashed #598392; transform: rotate(-28deg); transform-origin: left center"></div>
+    <div class="pin" style="left: 22px; top: 172px"><div style="width: 22px; height: 22px; border-radius: 6px; background: #124559; border: 3px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.35)"></div><span>Vitalis</span></div>
+    <div class="pin" style="left: 236px; top: 60px"><div class="dot" style="background: #A5243D"></div><span>Resident B</span></div>
+    <div style="position: absolute; left: 213px; top: 37px; width: 66px; height: 66px; border-radius: 50%; background: rgba(165,36,61,.16)"></div>
+  </div>
+  <div style="display: flex; gap: 10px">
+    <div class="stat"><b>1.2 km</b><span>from Vitalis</span></div>
+    <div class="stat"><b>1 min ago</b><span>last location update</span></div>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border: 1px solid #C5D5DA; border-radius: 12px">
+    <span style="font-size: 13px; font-weight: 600; color: #3E5C66">Good to know</span>
+    <span style="font-size: 15px; line-height: 1.4">Often walks to the park. Responds well to a calm invitation for coffee.</span>
+  </div>
+  <div style="margin-top: auto; display: flex; flex-direction: column; gap: 10px">
+    <a class="btn pri" href="#CgNetwork">Alert the network</a>
+    <a class="btn sec" href="#CgOnRoute">I'll go myself</a>
+  </div>
+</div>
+</section>
+<section class="screen" id="scr-CgNetwork" data-name="CgNetwork" aria-label="C3 Contact network" hidden>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #ffffff; display: flex; flex-direction: column; padding: 20px 20px 32px; gap: 16px">
+  <a class="ib" href="#CgAlert" aria-label="Back"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></a>
+  <div style="display: flex; flex-direction: column; gap: 4px">
+    <h1 style="margin: 0; font-size: 26px; font-weight: 600">Contact network of Resident B</h1>
+    <p style="margin: 0; font-size: 14px; color: #3E5C66">Nearest available person is asked first</p>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 10px">
+    <div class="row">
+      <span class="av ok"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0z"></path></svg></span>
+      <span style="flex: 1; display: flex; flex-direction: column"><span class="nm">Sofie</span><span class="rel">Volunteer · 0.8 km from resident</span></span>
+      <span class="tag ok">Available</span>
+    </div>
+    <div class="row">
+      <span class="av ok"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0z"></path></svg></span>
+      <span style="flex: 1; display: flex; flex-direction: column"><span class="nm">Anna</span><span class="rel">Daughter · 2.1 km from resident</span></span>
+      <span class="tag ok">Available</span>
+    </div>
+    <div class="row">
+      <span class="av no"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0z"></path></svg></span>
+      <span style="flex: 1; display: flex; flex-direction: column"><span class="nm">Peter</span><span class="rel">Neighbour · available after 17:00</span></span>
+      <span class="tag no">Unavailable</span>
+    </div>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 12px; padding: 16px; background: #EEF3F4; border-radius: 12px">
+    <div style="display: flex; justify-content: space-between; align-items: center">
+      <span style="font-size: 15px; font-weight: 600">Escalation plan</span>
+      <a href="#CgEscalation" style="font-size: 14px; font-weight: 600; min-height: 32px; display: flex; align-items: center">Edit timers</a>
+    </div>
+    <div class="step"><span class="num">1</span><span style="flex: 1">Ask available contacts and those without a filled-in calendar</span><em data-t="s1">5 min</em></div>
+    <div class="step"><span class="num">2</span><span style="flex: 1">Caregiver goes</span><em data-t="s3">15 min</em></div>
+    <div class="step"><span class="num">3</span><span style="flex: 1">Call the police</span><em>0900-8844</em></div>
+  </div>
+  <a class="btn pri" href="#CgSearching" style="margin-top: auto">Start the search</a>
+</div>
+</section>
+<section class="screen" id="scr-CgSearching" data-name="CgSearching" aria-label="C4 Search running (timer)" hidden>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #ffffff; display: flex; flex-direction: column; padding: 32px 20px 32px; gap: 18px">
+  <div style="display: flex; flex-direction: column; gap: 4px">
+    <span style="font-size: 13px; font-weight: 600; color: #3E5C66">SEARCH FOR RESIDENT B · STARTED 14:41</span>
+    <h1 style="margin: 0; font-size: 26px; font-weight: 600">Waiting for a response</h1>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 8px">
+    <div style="display: flex; gap: 6px">
+      <div class="seg" style="background: #124559"></div><div class="seg"></div><div class="seg"></div>
+    </div>
+    <span style="font-size: 14px; color: #1F3A45"><strong>Step 1 of 3:</strong> asking available contacts</span>
+  </div>
+  <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 26px 16px; background: #EEF3F4; border-radius: 16px">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3E5C66" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 2"></path><path d="M5 3L2 6M19 3l3 3"></path></svg>
+    <span style="font-size: 56px; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums" data-cd="s1" data-next="CgNoOne">03:42</span>
+    <span style="font-size: 14px; color: #3E5C66">until step 2: you or a colleague goes</span>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 10px">
+    <span style="font-size: 13px; font-weight: 600; color: #3E5C66">RESPONSES FROM AVAILABLE CONTACTS</span>
+    <a class="resp wait" href="#CgOnRoute" style="text-decoration: none"><span class="nm">Sofie<span>Volunteer · available</span></span><span class="st">Waiting for reaction</span></a>
+    <div class="resp no"><span class="nm">Anna<span>Daughter · calendar not filled in</span></span><span class="st">Cannot retrieve</span></div>
+  </div>
+  <div style="margin-top: auto; display: flex; flex-direction: column; gap: 10px">
+    <a class="btn ter" href="#CgReturned">Resident is already back</a>
+  </div>
+</div>
+</section>
+<section class="screen" id="scr-CgOnRoute" data-name="CgOnRoute" aria-label="C5 Helper on route" hidden>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #ffffff; display: flex; flex-direction: column; padding: 32px 20px 32px; gap: 16px">
+  <div style="display: flex; flex-direction: column; gap: 4px">
+    <span style="font-size: 13px; font-weight: 600; color: #3E5C66">SEARCH FOR RESIDENT B · STARTED 14:41</span>
+    <h1 style="margin: 0; font-size: 26px; font-weight: 600">Sofie is on her way</h1>
+    <p style="margin: 0; font-size: 14px; color: #3E5C66">Accepted at 14:43 · arrives in about 6 min</p>
+  </div>
+  <div class="map" style="height: 290px">
+    <div style="position: absolute; left: 70px; top: 220px; width: 170px; height: 0; border-top: 3px solid #598392; transform: rotate(-38deg); transform-origin: left center"></div>
+    <div class="pin" style="left: 48px; top: 206px"><div class="dot" style="background: #598392"></div><span>Sofie</span></div>
+    <div class="pin" style="left: 216px; top: 92px"><div class="dot" style="background: #A5243D"></div><span>Resident B</span></div>
+    <div class="pin" style="left: 300px; top: 236px"><div style="width: 20px; height: 20px; border-radius: 6px; background: #124559; border: 3px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.35)"></div><span>Vitalis</span></div>
+  </div>
+  <div style="display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: #EEF3F4; border-radius: 12px">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1F3A45" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+    <span style="flex: 1; font-size: 14px; line-height: 1.4"><strong>Return check in <span data-cd="ret">14:20</span></strong><br>If Sofie hasn't confirmed by then, you get a reminder and step 2 starts.</span>
+  </div>
+  <div style="margin-top: auto; display: flex; flex-direction: column; gap: 10px">
+    <a class="btn pri" href="#CgReturned">Resident B is back</a>
+    <a class="btn sec" href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"></path></svg>Call Sofie</a>
+  </div>
+</div>
+</section>
+<section class="screen" id="scr-CgNoOne" data-name="CgNoOne" aria-label="C6 No one available" hidden>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #ffffff; display: flex; flex-direction: column; padding: 32px 20px 32px; gap: 18px">
+  <div style="display: flex; flex-direction: column; gap: 4px">
+    <span style="font-size: 13px; font-weight: 600; color: #3E5C66">SEARCH FOR RESIDENT B · STARTED 14:41</span>
+    <h1 style="margin: 0; font-size: 26px; font-weight: 600">No one in the network can go</h1>
+    <p style="margin: 0; font-size: 14px; color: #3E5C66; line-height: 1.4">Step 1 ended without a helper. Resident B is still 1.2 km away.</p>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 8px">
+    <div style="display: flex; gap: 6px">
+      <div class="seg" style="background: #124559"></div><div class="seg" style="background: #124559"></div><div class="seg"></div>
+    </div>
+    <span style="font-size: 14px; color: #1F3A45"><strong>Step 2 of 3:</strong> you or a colleague goes</span>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 8px">
+    <div class="resp"><span style="flex: 1">Sofie</span><span class="st">Cannot retrieve</span></div>
+    <div class="resp"><span style="flex: 1">Anna</span><span class="st">Cannot retrieve</span></div>
+  </div>
+  <div style="display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: #EEF3F4; border-radius: 12px">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1F3A45" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+    <span style="flex: 1; font-size: 14px; line-height: 1.4"><strong><span data-cd="s3">14:58</span> left</strong> before step 3 (police) is suggested</span>
+  </div>
+  <div style="margin-top: auto; display: flex; flex-direction: column; gap: 10px">
+    <a class="btn pri" href="#CgOnRoute">I'll go myself</a>
+    <a class="btn ter" href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"></path></svg>Call police now (0900-8844)</a>
+  </div>
+</div>
+</section>
+<section class="screen" id="scr-CgReturned" data-name="CgReturned" aria-label="C7 Resident returned" hidden>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #ffffff; display: flex; flex-direction: column; padding: 32px 20px 32px; gap: 18px">
+  <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 12px">
+    <div style="width: 56px; height: 56px; border-radius: 50%; background: #C1D37F; color: #124559; display: flex; align-items: center; justify-content: center">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>
+    </div>
+    <h1 style="margin: 0; font-size: 26px; font-weight: 600">Resident B is back</h1>
+    <p style="margin: 0; font-size: 14px; color: #3E5C66">Sofie has been thanked. The network is told the search is over.</p>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 10px">
+    <span style="font-size: 13px; font-weight: 600; color: #3E5C66">WHAT HAPPENED</span>
+    <div style="display: flex; flex-direction: column">
+      <div class="ev"><time>14:32</time><span>Left the Vitalis zone</span></div>
+      <div class="ev"><time>14:41</time><span>Search started by Mila (caregiver)</span></div>
+      <div class="ev"><time>14:43</time><span>Sofie accepted</span></div>
+      <div class="ev"><time>14:51</time><span>Sofie found Resident B</span></div>
+      <div class="ev"><time>15:04</time><span style="border-left-color: transparent">Back at Vitalis · 32 min in total</span></div>
+    </div>
+  </div>
+  <label class="fld">Note for the team (optional)<textarea placeholder="e.g. was looking for the old house, a bit cold"></textarea></label>
+  <a class="btn pri" href="#CgLocations" style="margin-top: auto">Close search</a>
+</div>
+</section>
+<section class="screen" id="scr-CgResidents" data-name="CgResidents" aria-label="C8 Resident list" hidden>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #ffffff; display: flex; flex-direction: column">
+  <div style="flex: 1; display: flex; flex-direction: column; gap: 18px; padding: 32px 20px 20px">
+    <h1 style="margin: 0; font-size: 26px; font-weight: 600">Residents</h1>
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <a class="row" href="#">
+        <span class="av"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0z"></path></svg></span>
+        <span style="flex: 1; display: flex; flex-direction: column"><span class="nm">Resident A</span><span class="rel">4 contact persons · plan set</span></span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+      </a>
+      <a class="row" href="#CgProfile">
+        <span class="av"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0z"></path></svg></span>
+        <span style="flex: 1; display: flex; flex-direction: column"><span class="nm">Resident B</span><span class="rel">3 contact persons · plan set</span></span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+      </a>
+      <a class="row" href="#">
+        <span class="av"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0z"></path></svg></span>
+        <span style="flex: 1; display: flex; flex-direction: column"><span class="nm">Resident C</span><span class="rel">1 contact person · no plan yet</span></span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+      </a>
+    </div>
+    <a class="add" href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Add resident</a>
+  </div>
+  <nav class="nav" aria-label="Main">
+    <a href="#CgLocations"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"></path><circle cx="12" cy="9.5" r="2.5"></circle></svg>Location</a>
+    <a class="on" href="#CgResidents"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20a6.5 6.5 0 0 1 13 0"></path><circle cx="17.5" cy="9" r="2.5"></circle><path d="M16 14.2a5 5 0 0 1 5.5 4.8"></path></svg>Residents</a>
+  </nav>
+</div>
+</section>
+<section class="screen" id="scr-CgProfile" data-name="CgProfile" aria-label="C9 Resident profile" hidden>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #ffffff; display: flex; flex-direction: column">
+  <div style="flex: 1; display: flex; flex-direction: column; gap: 14px; padding: 20px 20px 16px">
+    <a class="ib" href="#CgResidents" aria-label="Back"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></a>
+    <h1 style="margin: 0; font-size: 26px; font-weight: 600">Resident B</h1>
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <p class="lbl">CONTACT PERSONS · PREFERRED ORDER</p>
+      <div class="row">
+        <span class="av"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0z"></path></svg></span>
+        <span style="flex: 1; display: flex; flex-direction: column"><span class="nm">Anna</span><span class="rel">Daughter</span></span>
+        <button aria-label="Reorder Anna" style="width: 44px; height: 44px; border: 0; background: none; color: #4E6D78"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 9h14M5 15h14"></path></svg></button>
+      </div>
+      <div class="row">
+        <span class="av"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0z"></path></svg></span>
+        <span style="flex: 1; display: flex; flex-direction: column"><span class="nm">Sofie</span><span class="rel">Volunteer</span></span>
+        <button aria-label="Reorder Sofie" style="width: 44px; height: 44px; border: 0; background: none; color: #4E6D78"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 9h14M5 15h14"></path></svg></button>
+      </div>
+      <div class="row">
+        <span class="av"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0z"></path></svg></span>
+        <span style="flex: 1; display: flex; flex-direction: column"><span class="nm">Peter</span><span class="rel">Neighbour</span></span>
+        <button aria-label="Reorder Peter" style="width: 44px; height: 44px; border: 0; background: none; color: #4E6D78"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 9h14M5 15h14"></path></svg></button>
+      </div>
+      <a class="add" href="#"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Invite contact person</a>
+    </div>
+    <a class="row" href="#CgEscalation" style="padding: 0 14px">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 2"></path></svg>
+      <span style="flex: 1; display: flex; flex-direction: column"><span class="nm">Escalation plan</span><span class="rel"><span data-t="plan">3 steps · 5 / 15 min</span></span></span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+    </a>
+    <label class="fld" style="display: flex; flex-direction: column; gap: 8px"><span class="lbl">GOOD TO KNOW (SHOWN TO HELPERS)</span><textarea>Often walks to the park. Responds well to a calm invitation for coffee.</textarea></label>
+  </div>
+  <nav class="nav" aria-label="Main">
+    <a href="#CgLocations"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"></path><circle cx="12" cy="9.5" r="2.5"></circle></svg>Location</a>
+    <a class="on" href="#CgResidents"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20a6.5 6.5 0 0 1 13 0"></path><circle cx="17.5" cy="9" r="2.5"></circle><path d="M16 14.2a5 5 0 0 1 5.5 4.8"></path></svg>Residents</a>
+  </nav>
+</div>
+</section>
+<section class="screen" id="scr-CgEscalation" data-name="CgEscalation" aria-label="C10 Escalation plan + timers" hidden>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #ffffff; display: flex; flex-direction: column; padding: 20px 20px 32px; gap: 14px">
+  <a class="ib" href="#CgProfile" aria-label="Back"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></a>
+  <div style="display: flex; flex-direction: column; gap: 4px">
+    <h1 style="margin: 0; font-size: 26px; font-weight: 600">Escalation plan</h1>
+    <p style="margin: 0; font-size: 14px; color: #3E5C66">Resident B · each step starts when its timer runs out</p>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 8px">
+    <p class="lbl">WHO IS ASKED FIRST</p>
+    <div class="segc" role="group" aria-label="Who is asked first">
+      <button class="on" aria-pressed="true">Nearest</button>
+      <button aria-pressed="false">Preferred order</button>
+    </div>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 8px">
+    <p class="lbl">STEPS AND WAITING TIME</p>
+    <div class="step">
+      <span class="num">1</span>
+      <span class="txt">Available contacts<span>also those without a filled-in calendar</span></span>
+      <span class="stp"><button aria-label="Less time for step 1" data-k="s1" data-d="-1">−</button><output data-k="s1">5 min</output><button aria-label="More time for step 1" data-k="s1" data-d="1">+</button></span>
+    </div>
+    <div class="step">
+      <span class="num">2</span>
+      <span class="txt">Caregiver goes<span>you or a colleague on duty</span></span>
+      <span class="stp"><button aria-label="Less time for step 2" data-k="s3" data-d="-1">−</button><output data-k="s3">15 min</output><button aria-label="More time for step 2" data-k="s3" data-d="1">+</button></span>
+    </div>
+    <div class="step">
+      <span class="num">3</span>
+      <span class="txt">Call the police<span>0900-8844, or 112 if unsafe</span></span>
+      <span style="font-size: 13px; font-weight: 600; color: #3E5C66; padding-right: 8px">Last step</span>
+    </div>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 8px">
+    <p class="lbl">RETURN CHECK</p>
+    <div class="step">
+      <span class="txt">Remind me if the helper hasn't confirmed the return after</span>
+      <span class="stp"><button aria-label="Less time for return check" data-k="ret" data-d="-1">−</button><output data-k="ret">20 min</output><button aria-label="More time for return check" data-k="ret" data-d="1">+</button></span>
+    </div>
+  </div>
+  <button class="btn pri" data-save="Escalation plan saved" style="margin-top: auto">Save plan</button>
+</div>
+</section>
+<section class="screen" id="scr-NwAlert" data-name="NwAlert" aria-label="N1 Alert: can you help?" hidden>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #ffffff; display: flex; flex-direction: column; padding: 32px 20px 32px; gap: 16px">
+  <div style="display: flex; align-items: center; gap: 8px; color: #A5243D">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"></path><path d="M10 21h4"></path></svg>
+    <span style="font-size: 14px; font-weight: 600">Request from Vitalis · 14:41</span>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 6px">
+    <h1 style="margin: 0; font-size: 28px; font-weight: 600; line-height: 1.2">Can you help Resident B get back?</h1>
+    <p style="margin: 0; font-size: 15px; color: #2C4A55; line-height: 1.45">Resident B left Vitalis and is walking alone. Mila (caregiver) asks if you can go there.</p>
+  </div>
+  <div class="map" style="height: 210px">
+    <div class="pin" style="left: 70px; top: 130px"><div class="dot" style="background: #124559"></div><span>You</span></div>
+    <div class="pin" style="left: 220px; top: 50px"><div class="dot" style="background: #A5243D"></div><span>Resident B</span></div>
+  </div>
+  <div style="display: flex; gap: 10px">
+    <div class="stat"><b>0.8 km</b><span>from you</span></div>
+    <div class="stat"><b data-cd="answer">04:12</b><span>left to answer</span></div>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border: 1px solid #C5D5DA; border-radius: 12px">
+    <span style="font-size: 13px; font-weight: 600; color: #3E5C66">Good to know</span>
+    <span style="font-size: 15px; line-height: 1.4">Often walks to the park. Responds well to a calm invitation for coffee.</span>
+  </div>
+  <div style="margin-top: auto; display: flex; flex-direction: column; gap: 10px">
+    <a class="btn pri" href="#NwOnRoute">I can help</a>
+    <a class="btn sec" href="#NwCantHelp">I can't help now</a>
+  </div>
+</div>
+</section>
+<section class="screen" id="scr-NwOnRoute" data-name="NwOnRoute" aria-label="N2 On route to resident" hidden>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #ffffff; display: flex; flex-direction: column; padding: 32px 20px 32px; gap: 14px">
+  <div style="display: flex; flex-direction: column; gap: 4px">
+    <span style="font-size: 13px; font-weight: 600; color: #3E5C66">YOU'RE HELPING · MILA KNOWS YOU'RE COMING</span>
+    <h1 style="margin: 0; font-size: 26px; font-weight: 600">Go to Resident B</h1>
+  </div>
+  <div class="map" style="height: 280px">
+    <div style="position: absolute; left: 66px; top: 214px; width: 190px; height: 0; border-top: 3px solid #124559; transform: rotate(-36deg); transform-origin: left center"></div>
+    <div class="pin" style="left: 46px; top: 200px"><div class="dot" style="background: #124559"></div><span>You</span></div>
+    <div class="pin" style="left: 210px; top: 72px"><div class="dot" style="background: #A5243D"></div><span>Resident B</span></div>
+    <span style="position: absolute; left: 12px; top: 12px; background: #ffffff; padding: 6px 10px; border-radius: 8px; font-size: 13px; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,.2)">Updated 30 s ago · walking north</span>
+  </div>
+  <a class="btn ter" href="#" style="min-height: 48px; font-size: 15px">Open in Maps</a>
+  <div style="display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; background: #EEF3F4; border-radius: 12px">
+    <span style="font-size: 15px; font-weight: 600">When you find Resident B</span>
+    <div class="tip"><b>1</b><span>Approach from the front and say your name.</span></div>
+    <div class="tip"><b>2</b><span>Stay calm. Don't correct or argue.</span></div>
+    <div class="tip"><b>3</b><span>Suggest walking back together, e.g. for coffee.</span></div>
+  </div>
+  <div style="margin-top: auto; display: flex; flex-direction: column; gap: 10px">
+    <a class="btn pri" href="#NwWalking">I'm with Resident B</a>
+    <a class="btn sec" href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"></path></svg>Call Mila (caregiver)</a>
+  </div>
+</div>
+</section>
+<section class="screen" id="scr-NwWalking" data-name="NwWalking" aria-label="N3 Walking back together" hidden>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #ffffff; display: flex; flex-direction: column; padding: 32px 20px 32px; gap: 16px">
+  <div style="display: flex; flex-direction: column; gap: 4px">
+    <span style="font-size: 13px; font-weight: 600; color: #3E5C66">FOUND AT 14:51 · MILA HAS BEEN TOLD</span>
+    <h1 style="margin: 0; font-size: 26px; font-weight: 600">Walking back together</h1>
+  </div>
+  <div class="map" style="height: 300px">
+    <div style="position: absolute; left: 200px; top: 96px; width: 150px; height: 0; border-top: 3px dashed #124559; transform: rotate(48deg); transform-origin: left center"></div>
+    <div class="pin" style="left: 176px; top: 80px"><div style="display: flex"><div class="dot" style="background: #124559"></div><div class="dot" style="background: #A5243D; margin-left: -8px"></div></div><span>You + Resident B</span></div>
+    <div class="pin" style="left: 290px; top: 200px"><div style="width: 20px; height: 20px; border-radius: 6px; background: #124559; border: 3px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.35)"></div><span>Vitalis</span></div>
+  </div>
+  <div style="display: flex; gap: 10px">
+    <div class="stat"><b>1.2 km</b><span>to Vitalis</span></div>
+    <div class="stat"><b>~15 min</b><span>walking</span></div>
+  </div>
+  <p style="margin: 0; font-size: 14px; color: #2C4A55; line-height: 1.45">Entrance: [VITALIS ADDRESS + WHICH DOOR]. A caregiver will meet you there.</p>
+  <div style="margin-top: auto; display: flex; flex-direction: column; gap: 10px">
+    <a class="btn pri" href="#NwThanks">We're back at Vitalis</a>
+    <a class="btn sec" href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"></path></svg>Call Mila (caregiver)</a>
+  </div>
+</div>
+</section>
+<section class="screen" id="scr-NwThanks" data-name="NwThanks" aria-label="N4 Resident is back" hidden>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #ffffff; display: flex; flex-direction: column; padding: 32px 24px 32px; gap: 16px">
+  <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; text-align: center">
+    <div style="width: 88px; height: 88px; border-radius: 50%; background: #C1D37F; color: #124559; display: flex; align-items: center; justify-content: center">
+      <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>
+    </div>
+    <h1 style="margin: 0; font-size: 28px; font-weight: 600">Thank you, Sofie</h1>
+    <p style="margin: 0; font-size: 16px; color: #2C4A55; line-height: 1.5; max-width: 300px">Resident B is safely back at Vitalis. Mila has taken over and the search is closed.</p>
+  </div>
+  <a class="btn pri" href="#NwHomeDone">Back to home</a>
+</div>
+</section>
+<section class="screen" id="scr-NwCantHelp" data-name="NwCantHelp" aria-label="N5 I can't help" hidden>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #ffffff; display: flex; flex-direction: column; padding: 32px 24px 32px; gap: 16px">
+  <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; text-align: center">
+    <div style="width: 88px; height: 88px; border-radius: 50%; background: #E3ECEE; color: #124559; display: flex; align-items: center; justify-content: center">
+      <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20a6.5 6.5 0 0 1 13 0"></path><circle cx="17.5" cy="9" r="2.5"></circle><path d="M16 14.2a5 5 0 0 1 5.5 4.8"></path></svg>
+    </div>
+    <h1 style="margin: 0; font-size: 28px; font-weight: 600">Thanks for letting us know</h1>
+    <p style="margin: 0; font-size: 16px; color: #2C4A55; line-height: 1.5; max-width: 300px">No problem. We'll ask someone else in Resident B's network right away.</p>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 10px">
+    <a class="btn sec" href="#NwAvailability">Set me unavailable for today</a>
+    <a class="btn pri" href="#NwHomeDone">Back to home</a>
+  </div>
+</div>
+</section>
+<section class="screen" id="scr-NwTaken" data-name="NwTaken" aria-label="N6 Someone else is going" hidden>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #ffffff; display: flex; flex-direction: column; padding: 32px 24px 32px; gap: 16px">
+  <span style="font-size: 13px; font-weight: 600; color: #3E5C66">SEEN BY ANNA (DAUGHTER) · 14:44</span>
+  <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; text-align: center">
+    <div style="width: 88px; height: 88px; border-radius: 50%; background: #C1D37F; color: #124559; display: flex; align-items: center; justify-content: center">
+      <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5" r="2"></circle><path d="M10 22l2-7 3 3v4"></path><path d="M8 12l2-4 4 1 3 3"></path><path d="M12 15l-1-6"></path></svg>
+    </div>
+    <h1 style="margin: 0; font-size: 28px; font-weight: 600">Sofie is already on her way</h1>
+    <p style="margin: 0; font-size: 16px; color: #2C4A55; line-height: 1.5; max-width: 300px">You don't need to do anything. We'll let you know when Resident B is back, or if more help is needed.</p>
+  </div>
+  <a class="btn pri" href="#NwHomeDone">OK</a>
+</div>
+</section>
+<section class="screen" id="scr-NwHomeDone" data-name="NwHomeDone" aria-label="N11 Home, no open requests" hidden>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #ffffff; display: flex; flex-direction: column">
+  <div style="flex: 1; display: flex; flex-direction: column; gap: 18px; padding: 32px 20px 20px">
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <h1 style="margin: 0; font-size: 26px; font-weight: 600">Hi Sofie</h1>
+      <p style="margin: 0; font-size: 14px; color: #3E5C66">You're in the network of Resident B</p>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 14px; background: #C1D37F" data-av="card">
+      <div style="display: flex; align-items: center; gap: 12px">
+        <span style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 17px; font-weight: 600; color: #01161E" data-av="title">You're available</span>
+          <span style="font-size: 14px; color: #01161E" data-av="sub">Today until 18:00</span>
+        </span>
+        <button class="sw" role="switch" aria-checked="true" aria-label="Available now" data-av="switch"><span></span></button>
+      </div>
+      <span style="font-size: 13px; color: #01161E; line-height: 1.4" data-av="note">You may get a request when Resident B needs help getting back.</span>
+    </div>
+    <div style="display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border: 1px solid #C5D5DA; border-radius: 12px">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3E5C66" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; margin-top: 1px"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7.5v.5"></path></svg>
+      <span style="font-size: 13px; color: #2C4A55; line-height: 1.45">Haven't filled in your availability calendar? Then we assume you're available during the hours Resident B is allowed to go outside. <a href="#NwAvailability" style="font-weight: 600">Set your hours</a></span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: #EEF3F4; border-radius: 12px">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3E5C66" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"></path><path d="M10 21h4"></path></svg>
+      <span style="font-size: 15px; color: #1F3A45">No open requests</span>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <p class="lbl">YOUR SETTINGS</p>
+      <a class="row" href="#NwAvailability"><span class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M16 3v4M8 3v4M3 10h18"></path></svg></span><span style="flex: 1; display: flex; flex-direction: column"><span class="nm">Availability</span><span class="rel">When you can be asked</span></span></a>
+      <a class="row" href="#NwProfile"><span class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg></span><span style="flex: 1; display: flex; flex-direction: column"><span class="nm">Profile</span><span class="rel">Contact details and how you travel</span></span></a>
+      <a class="row" href="#NwInfo"><span class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7.5v.5"></path></svg></span><span style="flex: 1; display: flex; flex-direction: column"><span class="nm">Information</span><span class="rel">Vitalis, caregivers, tips</span></span></a>
+    </div>
+  </div>
+  <nav class="nav" aria-label="Main">
+    <a class="on" href="#NwHomeDone"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path></svg>Home</a>
+    <a href="#NwAvailability"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M16 3v4M8 3v4M3 10h18"></path></svg>Availability</a>
+    <a href="#NwInfo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7.5v.5"></path></svg>Info</a>
+    <a href="#NwProfile"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>Profile</a>
+  </nav>
+</div>
+</section>
+<section class="screen" id="scr-NwHome" data-name="NwHome" aria-label="N7 Home" hidden>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #ffffff; display: flex; flex-direction: column">
+  <div style="flex: 1; display: flex; flex-direction: column; gap: 18px; padding: 32px 20px 20px">
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <h1 style="margin: 0; font-size: 26px; font-weight: 600">Hi Sofie</h1>
+      <p style="margin: 0; font-size: 14px; color: #3E5C66">You're in the network of Resident B</p>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 14px; background: #C1D37F" data-av="card">
+      <div style="display: flex; align-items: center; gap: 12px">
+        <span style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 17px; font-weight: 600; color: #01161E" data-av="title">You're available</span>
+          <span style="font-size: 14px; color: #01161E" data-av="sub">Today until 18:00</span>
+        </span>
+        <button class="sw" role="switch" aria-checked="true" aria-label="Available now" data-av="switch"><span></span></button>
+      </div>
+      <span style="font-size: 13px; color: #01161E; line-height: 1.4" data-av="note">You may get a request when Resident B needs help getting back.</span>
+    </div>
+    <div style="display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border: 1px solid #C5D5DA; border-radius: 12px">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3E5C66" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; margin-top: 1px"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7.5v.5"></path></svg>
+      <span style="font-size: 13px; color: #2C4A55; line-height: 1.45">Haven't filled in your availability calendar? Then we assume you're available during the hours Resident B is allowed to go outside. <a href="#NwAvailability" style="font-weight: 600">Set your hours</a></span>
+    </div>
+    <a href="#NwAlert" style="display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: #CD8B76; border-radius: 12px; color: #01161E; text-decoration: none">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"></path><path d="M10 21h4"></path></svg>
+      <span style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+        <span style="font-size: 16px; font-weight: 600">1 open request</span>
+        <span style="font-size: 13px">Resident B needs help getting back · 0.8 km</span>
+      </span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+    </a>
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <p class="lbl">YOUR SETTINGS</p>
+      <a class="row" href="#NwAvailability"><span class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M16 3v4M8 3v4M3 10h18"></path></svg></span><span style="flex: 1; display: flex; flex-direction: column"><span class="nm">Availability</span><span class="rel">When you can be asked</span></span></a>
+      <a class="row" href="#NwProfile"><span class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg></span><span style="flex: 1; display: flex; flex-direction: column"><span class="nm">Profile</span><span class="rel">Contact details and how you travel</span></span></a>
+      <a class="row" href="#NwInfo"><span class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7.5v.5"></path></svg></span><span style="flex: 1; display: flex; flex-direction: column"><span class="nm">Information</span><span class="rel">Vitalis, caregivers, tips</span></span></a>
+    </div>
+  </div>
+  <nav class="nav" aria-label="Main">
+    <a class="on" href="#NwHome"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path></svg>Home</a>
+    <a href="#NwAvailability"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M16 3v4M8 3v4M3 10h18"></path></svg>Availability</a>
+    <a href="#NwInfo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7.5v.5"></path></svg>Info</a>
+    <a href="#NwProfile"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>Profile</a>
+  </nav>
+</div>
+</section>
+<section class="screen" id="scr-NwAvailability" data-name="NwAvailability" aria-label="N8 Availability" hidden>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #ffffff; display: flex; flex-direction: column">
+  <div style="flex: 1; display: flex; flex-direction: column; gap: 12px; padding: 32px 20px 16px">
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <h1 style="margin: 0; font-size: 26px; font-weight: 600">Availability</h1>
+      <p style="margin: 0; font-size: 14px; color: #3E5C66">You're only asked during available hours</p>
+    </div>
+    <div style="display: flex; align-items: center; justify-content: space-between">
+      <button class="ib" aria-label="Previous week"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></button>
+      <span style="font-size: 16px; font-weight: 600">12 – 18 October</span>
+      <button class="ib" aria-label="Next week"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <div class="day"><b>Mon 12</b><span>09:00 – 18:00</span><span class="tag ok">Available</span><button class="ed" aria-label="Edit Monday"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"></path></svg></button></div>
+      <div class="day"><b>Tue 13</b><span>–</span><span class="tag no">Unavailable</span><button class="ed" aria-label="Edit Tuesday"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"></path></svg></button></div>
+      <div class="day" style="border: 2px solid #124559"><b>Wed 14</b><span>09:00 – 18:00</span><span class="tag ok">Available</span><button class="ed" aria-label="Edit Wednesday"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"></path></svg></button></div>
+      <div class="day"><b>Thu 15</b><span>15:00 – 21:00</span><span class="tag ok">Available</span><button class="ed" aria-label="Edit Thursday"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"></path></svg></button></div>
+      <div class="day"><b>Fri 16</b><span>09:00 – 18:00</span><span class="tag ok">Available</span><button class="ed" aria-label="Edit Friday"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"></path></svg></button></div>
+      <div class="day"><b>Sat 17</b><span>–</span><span class="tag nf">Not filled in</span><button class="ed" aria-label="Edit Saturday"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"></path></svg></button></div>
+      <div class="day"><b>Sun 18</b><span>10:00 – 16:00</span><span class="tag ok">Available</span><button class="ed" aria-label="Edit Sunday"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"></path></svg></button></div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px; padding: 4px 4px 4px 0">
+      <span style="flex: 1; font-size: 15px; font-weight: 500">Repeat every week</span>
+      <button class="sw" role="switch" aria-checked="true" aria-label="Repeat every week"><span></span></button>
+    </div>
+    <button class="btn pri" data-save="Availability saved" style="margin-top: auto">Save availability</button>
+  </div>
+  <nav class="nav" aria-label="Main">
+    <a href="#NwHome"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path></svg>Home</a>
+    <a class="on" href="#NwAvailability"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M16 3v4M8 3v4M3 10h18"></path></svg>Availability</a>
+    <a href="#NwInfo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7.5v.5"></path></svg>Info</a>
+    <a href="#NwProfile"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>Profile</a>
+  </nav>
+</div>
+</section>
+<section class="screen" id="scr-NwProfile" data-name="NwProfile" aria-label="N9 Profile" hidden>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #ffffff; display: flex; flex-direction: column">
+  <div style="flex: 1; display: flex; flex-direction: column; gap: 14px; padding: 32px 20px 16px">
+    <h1 style="margin: 0; font-size: 26px; font-weight: 600">Profile</h1>
+    <label class="fld">Full name<input type="text" value="Sofie"></label>
+    <label class="fld">Phone number<input type="tel" placeholder="+31 6 ..."></label>
+    <label class="fld">Relationship to resident<input type="text" value="Volunteer"></label>
+    <div class="fld">
+      <span>How do you usually travel?</span>
+      <div class="segc" role="group" aria-label="How do you usually travel">
+        <button aria-pressed="false">Walk</button>
+        <button class="on" aria-pressed="true">Bike</button>
+        <button aria-pressed="false">Car</button>
+      </div>
+    </div>
+    <label class="fld">Note for caregivers<textarea placeholder="e.g. only available after 15:00 on weekdays"></textarea></label>
+    <button class="btn pri" data-save="Profile saved" style="margin-top: auto">Save profile</button>
+  </div>
+  <nav class="nav" aria-label="Main">
+    <a href="#NwHome"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path></svg>Home</a>
+    <a href="#NwAvailability"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M16 3v4M8 3v4M3 10h18"></path></svg>Availability</a>
+    <a href="#NwInfo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7.5v.5"></path></svg>Info</a>
+    <a class="on" href="#NwProfile"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>Profile</a>
+  </nav>
+</div>
+</section>
+<section class="screen" id="scr-NwInfo" data-name="NwInfo" aria-label="N10 Information" hidden>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #ffffff; display: flex; flex-direction: column">
+  <div style="flex: 1; display: flex; flex-direction: column; gap: 14px; padding: 32px 20px 16px">
+    <h1 style="margin: 0; font-size: 26px; font-weight: 600">Information</h1>
+    <p class="lbl">VITALIS</p>
+    <div class="box">
+      <div class="kv"><span>Address</span>[ADDRESS OF THE LOCATION]</div>
+      <div class="kv"><span>Visiting hours</span>[VISITING HOURS]</div>
+      <div class="kv"><span>Where to bring a resident back</span>[MAIN ENTRANCE / WARD DOOR]</div>
+    </div>
+    <p class="lbl">CONTACT A CAREGIVER</p>
+    <a class="row" href="#">
+      <span style="flex: 1; display: flex; flex-direction: column"><span class="nm">Mila</span><span class="rel">On duty now · Ward 2</span></span>
+      <span class="call" aria-label="Call Mila"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"></path></svg></span>
+    </a>
+    <a class="row" href="#">
+      <span style="flex: 1; display: flex; flex-direction: column"><span class="nm">Ward 2 desk</span><span class="rel">[PHONE NUMBER]</span></span>
+      <span class="call" aria-label="Call ward 2 desk"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"></path></svg></span>
+    </a>
+    <p class="lbl">BEFORE YOU HELP</p>
+    <a class="row" href="#">
+      <span style="flex: 1; display: flex; flex-direction: column"><span class="nm">Meeting someone with dementia</span><span class="rel">3 short tips · 2 min read</span></span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right: 10px"><path d="M9 6l6 6-6 6"></path></svg>
+    </a>
+  </div>
+  <nav class="nav" aria-label="Main">
+    <a href="#NwHome"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path></svg>Home</a>
+    <a href="#NwAvailability"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M16 3v4M8 3v4M3 10h18"></path></svg>Availability</a>
+    <a class="on" href="#NwInfo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7.5v.5"></path></svg>Info</a>
+    <a href="#NwProfile"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>Profile</a>
+  </nav>
+</div>
+</section>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    </div>
+  </main>
+</div>
+<script>
+(function(){
+  var phone = document.getElementById('phone');
+  var app = document.getElementById('app');
+  var state, timer = null, toastT = null;
+  var LIMITS = {s1:[1,30,1], s3:[5,60,5], ret:[5,60,5]};
+  function fresh(){ state = {s1:5, s3:15, ret:20, weekOffset:0}; }
+  fresh();
+
+  function $all(sel, root){ return Array.prototype.slice.call((root||document).querySelectorAll(sel)); }
+  function fmt(sec){ sec = Math.max(0, sec); var m = Math.floor(sec/60), s = sec%60; return (m<10?'0':'')+m+':'+(s<10?'0':'')+s; }
+
+  function renderPlan(){
+    $all('[data-k]').forEach(function(el){ if(el.tagName==='OUTPUT') el.textContent = state[el.dataset.k] + ' min'; });
+    $all('[data-t]').forEach(function(el){
+      var k = el.dataset.t;
+      el.textContent = k === 'plan' ? '3 steps · ' + state.s1 + ' / ' + state.s3 + ' min' : state[k] + ' min';
+    });
+  }
+
+  function toast(msg){
+    var t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(toastT); toastT = setTimeout(function(){ t.classList.remove('show'); }, 2200);
+  }
+
+  function startTimers(screen){
+    clearInterval(timer);
+    var els = $all('[data-cd]', screen);
+    if(!els.length) return;
+    var start = {s1: state.s1*60 - 18, answer: state.s1*60 - 48, ret: state.ret*60 - 40, s3: state.s3*60 - 2};
+    els.forEach(function(el){ el._left = Math.max(5, start[el.dataset.cd] || 60); el.textContent = fmt(el._left); });
+    timer = setInterval(function(){
+      els.forEach(function(el){
+        if(el._left <= 0) return;
+        el._left--; el.textContent = fmt(el._left);
+        if(el._left === 0 && el.dataset.next){ location.hash = el.dataset.next; }
+      });
+    }, 1000);
+  }
+
+  function show(name){
+    var target = document.getElementById('scr-' + name) || document.getElementById('scr-Main');
+    $all('.screen').forEach(function(s){ s.hidden = s !== target; });
+    renderPlan();
+    startTimers(target);
+  }
+
+  function fit(){
+    var small = window.innerWidth <= 760;
+    var stage = document.getElementById('stage');
+    var w = stage.clientWidth - (small ? 0 : 64), h = stage.clientHeight - (small ? 0 : 64);
+    var k = Math.min(w/390, h/844);
+    if(!small) k = Math.min(1, k);
+    phone.style.transform = 'scale(' + k + ')';
+  }
+
+  function setSwitch(btn, on){
+    btn.setAttribute('aria-checked', on ? 'true' : 'false');
+    btn.style.background = on ? '' : '#B9CCD2';
+    var knob = btn.querySelector('span');
+    if(knob){ knob.style.right = on ? '' : 'auto'; knob.style.left = on ? '' : '3px'; }
+  }
+
+  var DAY_STATES = [
+    {cls:'ok', label:'Available'},
+    {cls:'no', label:'Unavailable'},
+    {cls:'nf', label:'Not filled in'}
+  ];
+
+  phone.addEventListener('click', function(e){
+    var el = e.target.closest('a,button');
+    if(!el || !phone.contains(el)) return;
+
+    // stepper (escalation timers)
+    if(el.dataset.k && el.dataset.d){
+      var k = el.dataset.k, lim = LIMITS[k];
+      state[k] = Math.min(lim[1], Math.max(lim[0], state[k] + Number(el.dataset.d) * lim[2]));
+      renderPlan(); return;
+    }
+    // response box: waiting -> confirmed, then helper on route
+    if(el.classList.contains('resp') && el.classList.contains('wait')){
+      e.preventDefault();
+      el.classList.remove('wait'); el.classList.add('ok');
+      el.querySelector('.st').textContent = 'Confirmed';
+      setTimeout(function(){ location.hash = 'CgOnRoute'; }, 1100);
+      return;
+    }
+    // segmented control
+    if(el.parentElement && el.parentElement.classList.contains('segc')){
+      $all('button', el.parentElement).forEach(function(b){ b.classList.toggle('on', b === el); b.setAttribute('aria-pressed', b === el ? 'true' : 'false'); });
+      return;
+    }
+    // switches
+    if(el.classList.contains('sw')){
+      var on = el.getAttribute('aria-checked') !== 'true';
+      setSwitch(el, on);
+      if(el.dataset.av === 'switch'){
+        var scr = el.closest('.screen');
+        var card = scr.querySelector('[data-av="card"]');
+        card.style.background = on ? '#C1D37F' : '#F2DCE1';
+        scr.querySelector('[data-av="title"]').textContent = on ? "You're available" : "You're unavailable";
+        scr.querySelector('[data-av="sub"]').textContent = on ? 'Today until 18:00' : 'Until you switch this back on';
+        scr.querySelector('[data-av="note"]').textContent = on ? 'You may get a request when Resident B needs help getting back.' : "You won't get requests for now. Others in the network are asked instead.";
+      } else {
+        toast(on ? 'Turned on' : 'Turned off');
+      }
+      return;
+    }
+    // availability: cycle a day's status
+    if(el.classList.contains('ed')){
+      var day = el.closest('.day'), tag = day.querySelector('.tag'), time = day.querySelector('b + span');
+      if(!day.dataset.time) day.dataset.time = time.textContent.indexOf(':') > -1 ? time.textContent : '09:00 – 18:00';
+      var i = DAY_STATES.findIndex(function(s){ return tag.classList.contains(s.cls); });
+      var next = DAY_STATES[(i + 1) % DAY_STATES.length];
+      tag.className = 'tag ' + next.cls; tag.textContent = next.label;
+      time.textContent = next.cls === 'ok' ? day.dataset.time : '–';
+      return;
+    }
+    // availability: week navigation
+    var lbl = el.getAttribute('aria-label') || '';
+    if(lbl === 'Previous week' || lbl === 'Next week'){
+      state.weekOffset += lbl === 'Next week' ? 1 : -1;
+      var start = new Date(2026, 9, 12 + state.weekOffset*7), end = new Date(start); end.setDate(start.getDate()+6);
+      var mo = function(d){ return d.toLocaleString('en-GB', {month:'long'}); };
+      el.parentElement.querySelector('span').textContent = start.getDate() + (mo(start) !== mo(end) ? ' ' + mo(start) : '') + ' – ' + end.getDate() + ' ' + mo(end);
+      var days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+      $all('.day b', el.closest('.screen')).forEach(function(b, idx){ var d = new Date(start); d.setDate(start.getDate()+idx); b.textContent = days[idx] + ' ' + d.getDate(); });
+      return;
+    }
+    // reorder contact persons
+    if(lbl.indexOf('Reorder') === 0){
+      var row = el.closest('.row'), prev = row.previousElementSibling;
+      if(prev && prev.classList.contains('row')) row.parentElement.insertBefore(row, prev);
+      else { var rows = $all('.row', row.parentElement); var last = rows[rows.length-1]; last.after(row); }
+      toast(lbl.replace('Reorder ', '') + ' moved'); return;
+    }
+    // save buttons
+    if(el.dataset.save){ toast(el.dataset.save); return; }
+    // placeholders
+    if(el.tagName === 'A' && el.getAttribute('href') === '#'){
+      e.preventDefault();
+      var txt = el.textContent.trim().replace(/\s+/g,' ');
+      toast(/^call/i.test(txt) ? 'This would start a phone call' : 'Not part of this prototype yet');
+      return;
+    }
+    if(el.tagName === 'BUTTON' && !el.closest('label')){
+      var t2 = el.textContent.trim();
+      if(/save/i.test(t2)) toast('Saved');
+    }
+  });
+
+  window.addEventListener('hashchange', function(){ show(location.hash.slice(1)); });
+  window.addEventListener('resize', fit);
+  fit();
+  show(location.hash.slice(1) || 'Main');
+})();
+</script>
+</body>
+</html>
